@@ -1,71 +1,103 @@
 select *
-from   book;
+from   Book;
 
 select *
-from   customer;
+from   Customer;
 
 select *
-from   orders;
+from   Orders;
 
-select avg(saleprice)
-from   orders;
-
-/*¹ÚÁö¼ºÀÌ ±¸¸ÅÇÑ µµ¼­ÀÇ ÃâÆÇ»ç ¼ö*/
-select count(b.publisher)
-from   book b, customer c, orders o
+/*ë°•ì§€ì„±ì´ êµ¬ë§¤í•œ ë„ì„œì˜ ì¶œíŒì‚¬ ìˆ˜*/
+select count(distinct b.publisher)
+from   Book b, Customer c, Orders o
 where  c.custid = o.custid
 and    b.bookid = o.bookid
-and    c.name like '¹ÚÁö¼º';
+and    c.name like 'ë°•ì§€ì„±';
 
-/*¹ÚÁö¼ºÀÌ ±¸¸ÅÇÑ µµ¼­ÀÇ ÀÌ¸§, °¡°Ý, Á¤°¡¿Í ÆÇ¸Å°¡°ÝÀÇ Â÷ÀÌ*/
-select b.bookname, o.saleprice, b.price - o.saleprice
-from   book b, customer c, orders o
+/*ê³ ê°ë²ˆí˜¸ 1ë²ˆ( = ë°•ì§€ì„±)ì´ êµ¬ë§¤í•œ ë„ì„œì˜ ì¶œíŒì‚¬ ìˆ˜*/
+select count(distinct b.publisher)
+from   Book b, Orders o
+where  b.bookid = o.bookid
+and    o.custid = 1;
+
+/*ë°•ì§€ì„±ì´ êµ¬ë§¤í•œ ë„ì„œì˜ ì´ë¦„, ê°€ê²©, ì •ê°€ì™€ íŒë§¤ê°€ê²©ì˜ ì°¨ì´*/
+select b.bookname, b.price, b.price - o.saleprice
+from   Book b, Customer c, Orders o
 where  c.custid = o.custid
 and    b.bookid = o.bookid
-and    c.name like '¹ÚÁö¼º';
+and    c.name like 'ë°•ì§€ì„±';
 
-/*¹ÚÁö¼ºÀÌ ±¸¸ÅÇÏÁö ¾ÊÀº µµ¼­ÀÇ ÀÌ¸§*/
+/*ë°•ì§€ì„±ì´ êµ¬ë§¤í•˜ì§€ ì•Šì€ ë„ì„œì˜ ì´ë¦„*/
 select bookname
-from   book
+from   Book
 where  bookid not in (
                         select o.bookid
-                        from   customer c, orders o
+                        from   Customer c, Orders o
                         where  c.custid = o.custid
-                        and    c.name   = '¹ÚÁö¼º'
+                        and    c.name   like 'ë°•ì§€ì„±'
                      );
 
-/*ÁÖ¹®ÇÏÁö ¾ÊÀº °í°´ÀÇ ÀÌ¸§(ºÎ¼ÓÁúÀÇ »ç¿ë)*/
+/*ë°•ì§€ì„±ì´ êµ¬ë§¤í•˜ì§€ ì•Šì€ ë„ì„œì˜ ì´ë¦„2*/
+select bookname
+from   Book
+where  not exists (
+                    select bookname
+                    from   Customer, Orders 
+                    where  book.bookid = orders.bookid
+                    and    customer.custid = orders.custid
+                    and    customer.name like 'ë°•ì§€ì„±'
+                  );
+
+/*ì£¼ë¬¸í•˜ì§€ ì•Šì€ ê³ ê°ì˜ ì´ë¦„(ë¶€ì†ì§ˆì˜ ì‚¬ìš©)*/
 select name
 from   Customer
-where  name in (select name
-               from   Customer
-               where  custid = 5);
+where  name not in (
+                     select c.name
+                     from   Customer c, Orders o
+                     where  c.custid = o.custid
+                    );
 
-/*ÁÖ¹® ±Ý¾×ÀÇ ÃÑ¾×°ú ÁÖ¹®ÀÇ Æò±Õ ±Ý¾×*/
+/*ì£¼ë¬¸ ê¸ˆì•¡ì˜ ì´ì•¡ê³¼ ì£¼ë¬¸ì˜ í‰ê·  ê¸ˆì•¡*/
 select sum(saleprice), avg(saleprice)
 from   Orders;
 
-/*°í°´ÀÇ ÀÌ¸§°ú °í°´º° ±¸¸Å¾×*/
-select c.name, o.saleprice
+/*ê³ ê°ì˜ ì´ë¦„ê³¼ ê³ ê°ë³„ êµ¬ë§¤ì•¡*/
+select c.name, sum(o.saleprice) as purchase
 from   Customer c, Orders o
 where  c.custid = o.custid
-group  by c.name, o.saleprice;
+group  by c.name;
 
-/*°í°´ÀÇ ÀÌ¸§°ú °í°´ÀÌ ±¸¸ÅÇÑ µµ¼­ ¸ñ·Ï*/
+/*ê³ ê°ì˜ ì´ë¦„ê³¼ ê³ ê°ì´ êµ¬ë§¤í•œ ë„ì„œ ëª©ë¡*/
 select c.name, b.bookname
 from   Book b, Customer c, Orders o
 where  b.bookid = o.bookid
 and    c.custid = o.custid;
 
-/*µµ¼­ÀÇ °¡°Ý(Book Å×ÀÌºí)°ú ÆÇ¸Å°¡°Ý(Orders Å×ÀÌºí)ÀÇ Â÷ÀÌ°¡ °¡Àå ¸¹Àº ÁÖ¹®*/
-select max(b.price - o.saleprice)
-from   Book b, Orders o
-where  b.bookid = o.bookid;
+/*ë„ì„œì˜ ê°€ê²©(Book í…Œì´ë¸”)ê³¼ íŒë§¤ê°€ê²©(Orders í…Œì´ë¸”)ì˜ ì°¨ì´ê°€ ê°€ìž¥ ë§Žì€ ì£¼ë¬¸*/
+select b.bookname
+from   Book b, Orders o 
+where  b.bookid = o.bookid
+and    b.price - o.saleprice in ( 
+                                  select max(b.price - o.saleprice)
+                                  from   Book b, Orders o
+                                  where  b.bookid = o.bookid
+                                );
 
-/*µµ¼­ÀÇ ÆÇ¸Å¾× Æò±Õº¸´Ù ÀÚ½ÅÀÇ ±¸¸Å¾× Æò±ÕÀÌ ´õ ³ôÀº °í°´ÀÇ ÀÌ¸§*/
+/*ë„ì„œì˜ íŒë§¤ì•¡ í‰ê· ë³´ë‹¤ ìžì‹ ì˜ êµ¬ë§¤ì•¡ í‰ê· ì´ ë” ë†’ì€ ê³ ê°ì˜ ì´ë¦„*/
 select name
 from   Customer
-where  custid in (select o1.custid
-                  from   Orders o1, Orders o2
-                  group  by o1.custid
-                  having avg(o1.saleprice) > avg(o2.saleprice));
+where  custid in (
+                   select o1.custid
+                   from   Orders o1, Orders o2
+                   group  by o1.custid
+                   having avg(o1.saleprice) > avg(o2.saleprice)
+                 );
+
+select c.name, avg(o.saleprice)
+from   Customer c, Orders o
+where  c.custid = o.custid
+group  by c.name
+having avg(o.saleprice) > (
+                            select avg(saleprice)
+                            from   Orders
+                          );
