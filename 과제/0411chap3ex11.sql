@@ -157,7 +157,7 @@ and    r.cl_no = cl.cl_no;
 /*2020년 9월 1일에 가장 많은 고객이 관람한 영화를 보이시오.*/
 select c.c_movie
 from   cinema c, reserve r
-where  c.t_no = r.c_no
+where  c.t_no = r.t_no
 and    c.c_no = r.c_no
 and    r.r_date = '2020-09-01'
 group  by c.c_movie;
